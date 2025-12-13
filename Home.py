@@ -2,21 +2,48 @@
 Elite Wall Systems - Job Costing Application
 Main entry point - Google Sheets Version
 """
+
 import streamlit as st
 import sys
 from pathlib import Path
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent / "src"))
+# ------------------------------------------------------------------
+# Ensure src/ is always resolvable (local + Streamlit Cloud)
+# ------------------------------------------------------------------
+BASE_DIR = Path(__file__).parent
+SRC_DIR = BASE_DIR / "src"
 
-# Try Google Sheets, fall back to demo mode
+if SRC_DIR.exists() and str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
+# ------------------------------------------------------------------
+# Data source resolution:
+# 1) Try Google Sheets
+# 2) Fallback to demo/sample data
+# ------------------------------------------------------------------
+DEMO_MODE = False
+IMPORT_ERROR = None
+
 try:
-    from google_sheets import get_all_jobs, get_all_customers, get_job_cost_totals, initialize_sheets
-    DEMO_MODE = False
-except:
-    from demo_data import get_all_jobs, get_all_customers, get_job_cost_totals, initialize_sheets
+    from google_sheets import (
+        get_all_jobs,
+        get_all_customers,
+        get_job_cost_totals,
+        initialize_sheets
+    )
+except Exception as e:
+    IMPORT_ERROR = e
     DEMO_MODE = True
+
+    from demo_data import (
+        get_all_jobs,
+        get_all_customers,
+        get_job_cost_totals,
+        initialize_sheets
+    )
+
 from utils import format_currency, get_status_color
+
 
 # Page configuration
 st.set_page_config(
